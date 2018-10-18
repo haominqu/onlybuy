@@ -21,6 +21,7 @@ def addorder(request):
         tomoney = request.POST.get("tomoney", "")
         trmoney = request.POST.get("trmoney", "")
         bank = request.POST.get("bank", "")
+        goods = request.POST.get("goods", "")
         dealtime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         orderNo =dealtime
         mtomoney = 0

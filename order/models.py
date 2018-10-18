@@ -1,5 +1,5 @@
 from django.db import models
-
+from userinfo.models import *
 # Create your models here.
 
 
@@ -23,6 +23,7 @@ class Order(models.Model):
     bank = models.CharField("支付方式加卡号",max_length=50, null=False, default="unpay")
     dealtime = models.DateTimeField("交易时间", auto_now_add=True)
     status = models.IntegerField("订单状态", choices=ORDER_STATUS, null=False, default=0)
+    user = models.ForeignKey(UserInfo)
 
     def __str__(self):
         return self.orderNo

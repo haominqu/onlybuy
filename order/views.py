@@ -5,6 +5,7 @@ from .models import *
 import datetime
 from django.db import DatabaseError
 import logging
+from django.core import serializers
 import json
 # Create your views here.
 # goods = [
@@ -14,7 +15,7 @@ import json
 #     {"id":4,"title":"诺基亚7750黑色","price":1000.00,"desc":"全面屏，2000万后置摄像头","amount":1,"trprice":1000.00},
 # ]
 
-def addorder(request):
+def add_order(request):
     if request.method == "POST":
         user = request.user
         ads = request.POST.get("ads", "")
@@ -39,7 +40,37 @@ def addorder(request):
         for good in goods:
             glist.append(OrderGoods(title=good["title"],price=good["price"],desc=good["desc"],amount=good["amount"],trprice=good["trprice"],order=1))
         OrderGoods.objects.bulk_create(glist)
-        return HttpResponse(json.dumps({"result": True, "msg": "订单成功"}))
+        return HttpResponse(json.dumps({"result": True, "msg": "订单成功"+order.orderNo}))
 
     elif request.method == "GET":
         return render(request,'login.html')
+
+
+def order_list(request):
+    if request.method == "GET":
+        user = request.user
+        orderlist = Order.objects.filter(user_id=user.id)
+        orderlists = []
+        for order in orderlist:
+            orderlistt = {}
+            orderlistt['orderNo'] = order.orderNo
+            orderlistt['ads'] = order.ads
+            orderlistt['tomoney'] = str(order.tomoney)
+            orderlistt['trmoney'] = str(order.trmoney)
+            orderlistt['amount'] = order.amount
+            orderlistt['bank'] = order.bank
+            orderlistt['dealtime'] = order.dealtime.strftime("%Y-%m-%d %H:%M:%S")
+            goods = order.ordergoods_set.all()
+            goodss = serializers.serialize("json", goods)
+            orderlistt['goodss'] = goodss
+            orderlists.append(orderlistt)
+        return HttpResponse(json.dumps({"result": True, "list": orderlists}))
+
+
+def cancel_order(request):
+    if request.method == "GET":
+        user = request.user
+        orderid = request.GET.get("orderid","")
+        Order.objects.filter(id=orderid, user=user).update(status=5)
+        return HttpResponse(json.dumps({"result": True, "msg": "订单已取消"}))
+

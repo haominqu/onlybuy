@@ -43,7 +43,7 @@ def add_order(request):
         return HttpResponse(json.dumps({"result": True, "msg": "订单成功"+order.orderNo}))
 
     elif request.method == "GET":
-        return render(request,'login.html')
+        return render(request, 'login.html')
 
 
 def order_list(request):
@@ -74,3 +74,11 @@ def cancel_order(request):
         Order.objects.filter(id=orderid, user=user).update(status=5)
         return HttpResponse(json.dumps({"result": True, "msg": "订单已取消"}))
 
+
+def order_detail(request):
+    if request.method == "GET":
+        user = request.user
+        orderid = request.GET.get("orderid", "")
+        orderdetail = Order.objects.filter(id=orderid, user=user)
+        orderdetail = serializers.serialize("json", orderdetail)
+        return HttpResponse(json.dumps({"result": True, "orderdetail": orderdetail}))

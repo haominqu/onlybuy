@@ -5,9 +5,11 @@ from django.db import DatabaseError
 from django.http import request, response, HttpResponse
 import logging
 import json
+from django.core import serializers
 # Create your views here.
 
-def addcart(request):
+
+def add_cart(request):
     if request.method == "POST":
         user = request.user
         goodsid = request.POST.get("goodsid", "")
@@ -31,7 +33,7 @@ def addcart(request):
         pass
 
 
-def deletecart(request):
+def delete_cart(request):
     if request.method == "GET":
         user = request.user
         cartid = request.GET.get("cartid", "")
@@ -43,7 +45,7 @@ def deletecart(request):
         return HttpResponse(json.dumps({"result":"删除成功"}))
 
 
-def changecart(request):
+def change_cart(request):
     if request.method == "GET":
         user = request.user
         cartid = request.GET.get("cartid", "")
@@ -62,8 +64,31 @@ def changecart(request):
         return HttpResponse(json.dumps({"result":"删除成功"}))
 
 
-def cartlist(request):
+def cart_list(request):
     if request.method == "GET":
         user = request.user
         find_carts = Cart.objects.filter(user_id=user.id)
+        find_carts = serializers.serialize("json", find_carts)
         return HttpResponse(json.dumps({"cartlist":find_carts}))
+
+
+def add_favorite(request):
+    if request.method == "GET":
+        user = request.user
+        goodsid = request.GET.get("goodsid", "")
+        goods = Goods.objects.get(id=goodsid)
+        favorite = Favorite.objects.filter(goods_id=goodsid)
+        if favorite:
+            return HttpResponse(json.dumps({"result": "已添加"}))
+        else:
+            Favorite.objects.create(user=user,goods=goods)
+            return HttpResponse(json.dumps({"result": "已添加"}))
+
+
+def delete_favorite(request):
+    if request.method == "POST":
+        user = request.user
+        fids = request.POST.get("fids","")
+        for fid in fids:
+            Favorite.objects.filter(id=fid).delete()
+        return HttpResponse(json.dumps({"result": "已删除"}))
